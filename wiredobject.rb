@@ -50,9 +50,6 @@ module WiredObject
     return socket
   end
 
-  def set_name
-  end
-
   def connection name
     return connections[name] if connections.include? name
     celf = self

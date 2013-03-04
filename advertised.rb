@@ -5,7 +5,7 @@ module Advertiser
 
   def advertise name=nil
     @name ||= name
-    raise "Must `set_name` first" if @name.nil?
+    raise "Can not advertise w/o name" if @name.nil?
     # TODO: publish ourself as accepting connections
   end
 
