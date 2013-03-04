@@ -1,0 +1,3 @@
+an object:
+ communicates w/ other objects via messaging
+ is the keeper of it's state

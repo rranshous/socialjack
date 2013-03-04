@@ -1,0 +1,18 @@
+
+module Advertiser
+
+  private
+
+  def advertise name=nil
+    @name ||= name
+    raise "Must `set_name` first" if @name.nil?
+    # TODO: publish ourself as accepting connections
+  end
+
+  def find name
+    # use zeroconf to find zmq endpoint
+    # for the given obj name
+    # TODO: actually lookup in zeroconf
+    ['127.0.0.1', 2200]
+  end
+end
