@@ -1,4 +1,4 @@
-require 'zmq'
+require 'ffi-rzmq'
 require 'msgpack'
 
 require_relative 'advertised'
@@ -43,11 +43,17 @@ module WiredObject
   end
 
   def bind host, port
-    socket = ctx.socket ZMQ::PAIR
-    socket.setsockopt ZMQ::LINGER, 1
-    socket.bind "tcp://#{host}:#{port}"
+    @in_connection = ctx.socket ZMQ::PAIR
+    #socket.setsockopt ZMQ::LINGER, 1
+    @in_connection.bind "tcp://#{host}:#{port}"
+    poller.register(@in_connection, ZMQ::POLLIN)
     @host, @port = host, port
-    return socket
+    puts "BOUND: #{@host}:#{@port}"
+    return @in_connection
+  end
+
+  def unbind
+    @in_connection.close
   end
 
   def connection name
@@ -57,17 +63,24 @@ module WiredObject
     shadow = connection.instance_eval {class << self; self; end;}
     shadow.instance_eval do
       define_method :cleanup do
-        celf.instance_eval do connections.delete name if connections[name] == self end
+        puts "CLEANING UP: #{name}"
+        celf.instance_eval do 
+          connections.delete name if connections[name] == self 
+        end
         connection.close rescue "Bad connection close"
       end
     end
+    connections[name] = connection
+    puts "CONNECTION: #{name} :: #{connections[name]}"
     return connection
   end
 
   def connect host='127.0.0.1', port
     socket = ctx.socket ZMQ::PAIR
-    socket.setsockopt ZMQ::LINGER, 1
+    #socket.setsockopt ZMQ::LINGER, 1
     socket.connect "tcp://#{host}:#{port}"
+    poller.register(socket, ZMQ::POLLIN)
+    puts "CONNECT: #{host}:#{port}"
     return socket
   end
 
@@ -75,8 +88,9 @@ module WiredObject
     # send the data to an obj matching the name
     conn = connection name
     to_send = serialize data
+    puts "PUSH: #{conn} :: #{to_send}"
     begin
-      conn.send_string to_send 
+      conn.send_string to_send, ZMQ::NOBLOCK
     rescue => ex
       conn.cleanup
       if do_retry
@@ -87,12 +101,21 @@ module WiredObject
     end
   end
 
+  def poller
+    @poller ||= ZMQ::Poller.new
+  end
+
   def pop
-    if conn = ZMQ.select(connections.values, nil, nil, 1)
+    poller.poll 1000
+    poller.readables.each do |conn|
+      puts "POPRECV"
       begin
-        return conn.recv_string
+        message = ""
+        conn.recv_string message
+        puts "MSG: #{message}"
+        return message
       rescue => ex
-        conn.cleanup
+        #conn.cleanup
         raise ex
       end
     end

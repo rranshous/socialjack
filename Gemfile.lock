@@ -2,6 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.2.1)
+    ffi (1.4.0)
+    ffi-rzmq (1.0.0)
+      ffi
     msgpack (0.5.3)
     rspec (2.13.0)
       rspec-core (~> 2.13.0)
@@ -17,6 +20,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  ffi-rzmq
   msgpack
   rspec
   zmq
