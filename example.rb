@@ -4,14 +4,15 @@ class Testeroo
   include WiredObject
 end
 
-
-to_send = ARGV[0]
+to_send = ARGV.shift
 puts "TOSEND: #{to_send}"
 unless to_send
   tester = Testeroo.new
   tester.instance_eval do
+    puts 'advertising'
     puts 'binding'
     bind '127.0.0.1', 2000
+    advertise 2000, 'TEST'
   end
   tester.instance_eval do
     puts 'poping'
@@ -24,6 +25,6 @@ else
   tester2 = Testeroo.new
   tester2.instance_eval do
     puts 'pushing'
-    push 'arb', to_send
+    push 'TEST', to_send
   end
 end

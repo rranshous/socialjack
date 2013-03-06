@@ -59,7 +59,10 @@ module WiredObject
   def connection name
     return connections[name] if connections.include? name
     celf = self
-    connection = connect *(find name)
+    addr = find name
+    raise "Could not find #{name}" if addr.nil?
+    connection = connect *addr
+    return if connection.nil?
     shadow = connection.instance_eval {class << self; self; end;}
     shadow.instance_eval do
       define_method :cleanup do
