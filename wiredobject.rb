@@ -113,7 +113,7 @@ module WiredObject
         message = ""
         conn.recv_string message
         puts "MSG: #{message}"
-        return message
+        return deserialize message
       rescue => ex
         #conn.cleanup
         raise ex

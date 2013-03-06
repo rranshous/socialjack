@@ -1,14 +1,5 @@
 require_relative 'wiredobject'
 
-module Multilingual
-  def serialize data
-    data
-  end
-  def deserialize data
-    data
-  end
-end
-
 class Testeroo 
   include WiredObject
 end
