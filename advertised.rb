@@ -1,4 +1,6 @@
 require 'dnssd'
+require 'monitor'
+require 'timeout'
 
 Thread.abort_on_exception = true
 trap 'INT' do exit end
@@ -35,26 +37,33 @@ module Advertiser
     # use zeroconf to find zmq endpoint
     # for the given obj name
     puts "FIND: #{get_object_name(name)} :: #{service_type}"
-    DNSSD.browse! service_type do |browse_reply|
-      puts "BREPLY: #{browse_reply.fullname} -> #{browse_reply.inspect}"
-      if (browse_reply.flags.to_i & DNSSD::Flags::Add) != 0
-        # adding record
-        DNSSD.resolve! browse_reply do |reply|
-          begin
-            puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
-            return [reply.target, reply.port]
-            #break unless reply.flags.more_coming? ?????
-          rescue => ex
-            puts "INNER EX: #{ex}"
-          end
+    results = []
+    results.extend MonitorMixin
+    empty_cond = results.new_cond
+    
+    # this is going to thread out to wazoo
+    DNSSD.browse('_object._tcp') do |service|
+      next unless service.flags.add?
+      puts "SERVICE: #{service.name} #{service.type} #{service.domain} #{service.interface}"
+      DNSSD.resolve(service) do |reply|
+        puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
+        results.synchronize do
+          results << [reply.target, reply.port]
+          empty_cond.signal
         end
-      else
-        # removing record
+        #break unless reply.flags.more_coming?
       end
     end
+    # wait for one of the threaded resolvers to find what we want
+    # or a timeout
+    results.synchronize do
+      Timeout::timeout(5) { empty_cond.wait_while { results.empty? } }
+    end
+
+    return results[0] unless results.empty?
     puts "FOUND NOTHING"
     nil
-  rescue
+  rescue => ex
     puts "EXCEPTION finding name: #{ex}"
     raise ex
   end
