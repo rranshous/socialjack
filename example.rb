@@ -11,7 +11,7 @@ unless to_send
   tester.instance_eval do
     puts 'advertising'
     puts 'binding'
-    bind '127.0.0.1', 2000
+    bind '0.0.0.0', 2000
     advertise 2000, 'TEST'
   end
   tester.instance_eval do

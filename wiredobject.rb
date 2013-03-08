@@ -4,16 +4,6 @@ require 'msgpack'
 require_relative 'advertised'
 require_relative 'multilingual'
 
-def error_check(rc)
-  if ZMQ::Util.resultcode_ok?(rc)
-    false
-  else
-    STDERR.puts "Operation failed, errno [#{ZMQ::Util.errno}] description [#{ZMQ::Util.error_string}]"
-    caller(1).each { |callstack| STDERR.puts(callstack) }
-    true
-  end
-end
-
 module WiredObject
 
   include Advertiser
@@ -44,7 +34,7 @@ module WiredObject
 
   def bind host, port
     @in_connection = ctx.socket ZMQ::PAIR
-    #socket.setsockopt ZMQ::LINGER, 1
+    socket.setsockopt ZMQ::LINGER, 1
     @in_connection.bind "tcp://#{host}:#{port}"
     poller.register(@in_connection, ZMQ::POLLIN)
     @host, @port = host, port
