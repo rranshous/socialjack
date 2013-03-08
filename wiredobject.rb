@@ -60,6 +60,7 @@ module WiredObject
     return connections[name] if connections.include? name
     celf = self
     addr = find name
+    puts "ADDR: #{addr}"
     raise "Could not find #{name}" if addr.nil?
     connection = connect *addr
     return if connection.nil?

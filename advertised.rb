@@ -22,7 +22,7 @@ module Advertiser
 
   def advertise port, name=nil
     @name ||= name
-    puts "AD: #{get_object_name(@name)}"
+    puts "AD: #{get_object_name(@name)} :: #{port}"
     raise "Can not advertise w/o name" if @name.nil?
     record = DNSSD::TextRecord.new
     record["test"] = '1'
@@ -34,23 +34,28 @@ module Advertiser
   def find name
     # use zeroconf to find zmq endpoint
     # for the given obj name
-    puts "FIND: #{get_object_name(name)}"
-    begin
-      DNSSD.resolve! get_object_name(@name), 
-                     service_type, domain do |reply|
-        begin
-          puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
-          break unless reply.flags.more_coming?
-          return [reply.target, reply.port]
-        rescue => ex
-          puts "INNER EX: #{ex}"
+    puts "FIND: #{get_object_name(name)} :: #{service_type}"
+    DNSSD.browse! service_type do |browse_reply|
+      puts "BREPLY: #{browse_reply.fullname} -> #{browse_reply.inspect}"
+      if (browse_reply.flags.to_i & DNSSD::Flags::Add) != 0
+        # adding record
+        DNSSD.resolve! browse_reply do |reply|
+          begin
+            puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
+            return [reply.target, reply.port]
+            #break unless reply.flags.more_coming? ?????
+          rescue => ex
+            puts "INNER EX: #{ex}"
+          end
         end
+      else
+        # removing record
       end
-    rescue => ex
-      puts "ExCEPTION finding name: #{ex}"
-      raise ex
     end
     puts "FOUND NOTHING"
     nil
+  rescue
+    puts "EXCEPTION finding name: #{ex}"
+    raise ex
   end
 end
