@@ -1,5 +1,6 @@
 require_relative 'wiredobject'
 
+# TODO: return passed args, verify they came back correctly
 class ZMQ::Socket
   def connect t
     true
