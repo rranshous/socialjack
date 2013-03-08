@@ -28,3 +28,7 @@ else
     push 'TEST', to_send
   end
 end
+
+puts "END OF EXAMPLE"
+puts "Threads:"
+Thread.list.each {|t| p t}

@@ -40,26 +40,19 @@ module Advertiser
     results = []
     results.extend MonitorMixin
     empty_cond = results.new_cond
-    
-    # this is going to thread out to wazoo
-    DNSSD.browse('_object._tcp') do |service|
-      next unless service.flags.add?
-      puts "SERVICE: #{service.name} #{service.type} #{service.domain} #{service.interface}"
-      DNSSD.resolve(service) do |reply|
-        puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
-        results.synchronize do
-          results << [reply.target, reply.port]
-          empty_cond.signal
-        end
-        #break unless reply.flags.more_coming?
+    DNSSD.resolve(get_object_name(name), service_type, domain) do |reply|
+      puts "FOUND: #{reply.name} :: #{reply.target}:#{reply.port}"
+      results.synchronize do
+        results << [reply.target, reply.port]
+        empty_cond.signal
       end
+      Thread.current.exit unless reply.flags.more_coming?
     end
     # wait for one of the threaded resolvers to find what we want
     # or a timeout
     results.synchronize do
       Timeout::timeout(5) { empty_cond.wait_while { results.empty? } }
     end
-
     return results[0] unless results.empty?
     puts "FOUND NOTHING"
     nil
