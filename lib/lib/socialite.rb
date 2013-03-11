@@ -100,8 +100,7 @@ module Socialite
   end
 
   def pop
-    puts "POP"
-    poller.poll 10
+    poller.poll 1000
     poller.readables.each do |conn|
       puts "POPRECV: #{conn}"
       begin

@@ -49,6 +49,7 @@ module Advertiser
         empty_cond.signal
       end
       next if reply.flags.more_coming? 
+      Thread.exit
     end
     # wait for one of the threaded resolvers to find what we want
     # or a timeout
@@ -57,8 +58,8 @@ module Advertiser
         empty_cond.wait_while { results.empty? }
       } rescue Timeout::Error
     end
-    #s.stop unless s.stopped?
-    #raise "Could not stop resolver" unless s.stopped?
+    s.stop unless s.stopped?
+    raise "Could not stop resolver" unless s.stopped?
     return results[0] unless results.empty?
     return nil
   rescue => ex
