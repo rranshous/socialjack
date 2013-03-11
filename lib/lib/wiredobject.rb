@@ -4,7 +4,7 @@ require 'msgpack'
 require_relative 'advertised'
 require_relative 'multilingual'
 
-module WiredObject
+module Socialite
 
   include Advertiser
   include Multilingual

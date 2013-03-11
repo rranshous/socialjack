@@ -17,14 +17,14 @@ class ZMQ::Socket
 end
 
 class TestObject
-  include WiredObject
+  include Socialite
 end
 
 d1 = {"test"=>1}
 host = '127.0.0.1'
 port = 2000
 
-describe WiredObject, "#wired" do
+describe Socialite, "#wired" do
 
   def obj 
     TestObject.new
