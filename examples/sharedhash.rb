@@ -14,11 +14,12 @@ class SharedHash
   end
 
   def cycle
-    if message = pop
-      puts "MESSAGE: #{message}"
+    while message = pop
       case message['type']
       when 'initial', 'updated'
+        o_hash = @hash.dup
         @hash = message['data'].merge @hash
+        broadcast_update unless @hash == o_hash
       else
         raise "Unrecignized message type: #{message['type']}"
       end
@@ -32,7 +33,6 @@ class SharedHash
   end
 
   def broadcast_initial
-    puts "Broadcasting initial: #{@friends}"
     return unless @friends
     @friends.each do |f|
       begin
@@ -45,7 +45,6 @@ class SharedHash
   end
 
   def broadcast_update
-    puts "Broadcasting update: #{@friends}"
     return unless @friends
     @friends.each do |f|
       begin
@@ -55,6 +54,11 @@ class SharedHash
         puts "Could not find"
       end
     end
+  end
+
+  def merge new_hash
+    @hash.merge! new_hash
+    broadcast_update
   end
 
 end
@@ -67,10 +71,9 @@ if __FILE__ == $0
   shared_hash.go_public
   shared_hash.broadcast_initial
   loop do
-    i = Random.rand 1000
     shared_hash.cycle
     sleep Random.rand 10
-    hash[i] = i*2
+    shared_hash.merge({ Random.rand(1000) => 1 })
     shared_hash.broadcast_update
   end
 end
