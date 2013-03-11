@@ -1,1 +1,1 @@
-require_relative 'lib/wiredobject'
+require_relative 'lib/socialite'
