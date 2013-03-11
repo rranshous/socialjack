@@ -9,7 +9,7 @@ module Socialite
   include Advertiser
   include Multilingual
 
-  attr_accessor :name, :host, :port
+  attr_reader :host, :port
 
   private
 
@@ -23,7 +23,7 @@ module Socialite
     end
   end
 
-  def bind_random host='127.0.0.1'
+  def bind_random host='0.0.0.0'
     100.times do 
       # catch bind exceptions, just try again
       port = Random.rand 2000...8000
@@ -100,16 +100,17 @@ module Socialite
   end
 
   def pop
-    poller.poll 1000
+    puts "POP"
+    poller.poll 10
     poller.readables.each do |conn|
-      puts "POPRECV"
+      puts "POPRECV: #{conn}"
       begin
         message = ""
         conn.recv_string message
         puts "MSG: #{message}"
         return deserialize message
       rescue => ex
-        #conn.cleanup
+        conn.cleanup
         raise ex
       end
     end

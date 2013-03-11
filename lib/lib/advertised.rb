@@ -8,6 +8,8 @@ trap 'TERM' do exit end
 
 module Advertiser
 
+  attr_reader :name
+
   private
 
   def service_type
@@ -46,8 +48,7 @@ module Advertiser
         results << [reply.target, reply.port]
         empty_cond.signal
       end
-      next if reply.flags.more_coming?
-      return 
+      next if reply.flags.more_coming? 
     end
     # wait for one of the threaded resolvers to find what we want
     # or a timeout
@@ -57,7 +58,7 @@ module Advertiser
       } rescue Timeout::Error
     end
     #s.stop unless s.stopped?
-    raise "Could not stop resolver" unless s.stopped?
+    #raise "Could not stop resolver" unless s.stopped?
     return results[0] unless results.empty?
     return nil
   rescue => ex
