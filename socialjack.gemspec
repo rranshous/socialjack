@@ -10,6 +10,6 @@ Gem::Specification.new do |s|
   s.summary     = "jack is a very social boy"
   s.description = "all work and no chatter makes jack a crouchy boy"
 
-  s.files        = Dir.glob("{lib}/*")
+  s.files        = Dir.glob("{lib}/**/*")
   s.require_path = 'lib'
 end
