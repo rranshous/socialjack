@@ -1,5 +1,6 @@
 require 'ffi-rzmq'
 require 'msgpack'
+require 'socketeer'
 
 require_relative 'advertised'
 require_relative 'multilingual'
@@ -8,6 +9,7 @@ module Socialite
 
   include Advertiser
   include Multilingual
+  include Socketeer
 
   attr_reader :host, :port
 
@@ -30,19 +32,6 @@ module Socialite
       return bind(host, port) rescue "Bad Bind: #{port}"
     end
     raise "Could not find port to bind to"
-  end
-
-  def bind host, port
-    @in_connection = ctx.socket ZMQ::PAIR
-    #socket.setsockopt ZMQ::LINGER, 1
-    @in_connection.bind "tcp://#{host}:#{port}"
-    poller.register(@in_connection, ZMQ::POLLIN)
-    @host, @port = host, port
-    return @in_connection
-  end
-
-  def unbind
-    @in_connection.close
   end
 
   def connection name
