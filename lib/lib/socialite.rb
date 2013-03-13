@@ -15,14 +15,13 @@ module Socialite
 
   private
 
-  def connections
-    @connections ||= {}
+  def handle_message message
+    # we received an incoming message
+    (@message_queue ||= Queue.new) << message
   end
 
-  def ctx
-    self.class.instance_eval do
-      return @ctx ||= ZMQ::Context.new(1)
-    end
+  def connections
+    @connections ||= {}
   end
 
   def bind_random host='0.0.0.0'
@@ -34,67 +33,35 @@ module Socialite
     raise "Could not find port to bind to"
   end
 
-  def connection name
+  def connection_id name
     return connections[name] if connections.include? name
     celf = self
     addr = find name
     raise "Could not find #{name}" if addr.nil?
     connection = connect *addr
     return if connection.nil?
-    shadow = connection.instance_eval {class << self; self; end;}
-    shadow.instance_eval do
-      define_method :cleanup do
-        celf.instance_eval do 
-          connections.delete name if connections[name] == self 
-        end
-        connection.close rescue "Bad connection close"
-      end
-    end
-    connections[name] = connection
-    return connection
+    conn_id = register_socket connection
+    connections[name] = conn_id
+    return conn_id
   end
 
   def connect host='127.0.0.1', port
-    socket = ctx.socket ZMQ::PAIR
-    #socket.setsockopt ZMQ::LINGER, 1
-    socket.connect "tcp://#{host}:#{port}"
-    poller.register(socket, ZMQ::POLLIN)
+    socket = TCPSocket host, port
     return socket
   end
 
   def push name, data, do_retry=true
-    # send the data to an obj matching the name
-    conn = connection name
-    to_send = serialize data
-    begin
-      conn.send_string to_send, ZMQ::NOBLOCK
-    rescue => ex
-      conn.cleanup
-      if do_retry
-        push name, data, false
-      else
-        raise ex
-      end
-    end
-  end
-
-  def poller
-    @poller ||= ZMQ::Poller.new
+    send_message connection_id(name), data
   end
 
   def pop
-    poller.poll 1000
-    poller.readables.each do |conn|
-      begin
-        message = ""
-        conn.recv_string message
-        return deserialize message
-      rescue => ex
-        conn.cleanup
-        raise ex
-      end
+    cycle
+    return if @message_queue.nil?
+    begin
+      @message_queue.deq true
+    rescue ThreadError
+      nil
     end
-    return nil
   end
 
 end

@@ -1,3 +1,10 @@
+PATH
+  remote: ../socketeer
+  specs:
+    socketeer (0.0.1)
+      msgpack
+      nio4r
+
 GEM
   remote: https://rubygems.org/
   remote: https://gems.gemfury.com/wvpDa7E2NASNBhGVJsjf/
@@ -17,9 +24,6 @@ GEM
     rspec-expectations (2.13.0)
       diff-lcs (>= 1.1.3, < 2.0)
     rspec-mocks (2.13.0)
-    socketeer (0.0.1)
-      msgpack
-      nio4r
     zmq (2.1.4)
 
 PLATFORMS
@@ -30,5 +34,5 @@ DEPENDENCIES
   ffi-rzmq
   msgpack
   rspec
-  socketeer
+  socketeer!
   zmq
