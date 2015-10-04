@@ -23,7 +23,7 @@ end
 Thread.new do
   bob = ChattyBot.new 'bob'
   while loop
-    sleep(5)
+    sleep(1)
     bob.get_chatty 'betty'
   end
 end
@@ -32,7 +32,7 @@ Thread.new do
   betty = ChattyBot.new 'betty'
   while loop
     betty.get_chatty 'bob'
-    sleep(5)
+    sleep(1)
   end
 end
 
